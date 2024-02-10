@@ -1,8 +1,9 @@
-import { toNano, Address, beginCell } from 'ton-core';
+import { toNano, Address, beginCell } from '@ton/core';
 import { Multisig } from '../wrappers/Multisig';
 import { Order } from '../wrappers/Order';
 import { compile, NetworkProvider, sleep } from '@ton/blueprint';
 import { Librarian } from '../wrappers/Librarian';
+import { TonClient, TonClient4 } from '@ton/ton';
 
 
 const waitForTransaction = async (provider:NetworkProvider, address:Address,
@@ -13,21 +14,22 @@ const waitForTransaction = async (provider:NetworkProvider, address:Address,
     let done  = false;
     let count = 0;
     const ui  = provider.ui();
-    let blockNum = (await provider.api().getLastBlock()).last.seqno;
+    const api = provider.api() as TonClient4;
+    let blockNum = (await api.getLastBlock()).last.seqno;
     if(curTxLt == null) {
-        let initialState = await provider.api().getAccount(blockNum, address);
+        let initialState = await api.getAccount(blockNum, address);
         let lt = initialState?.account?.last?.lt;
         curTxLt = lt ? lt : null;
     }
     do {
         ui.write(`Awaiting ${action} completion (${++count}/${maxRetry})`);
         await sleep(interval);
-        let newBlockNum = (await provider.api().getLastBlock()).last.seqno;
+        let newBlockNum = (await api.getLastBlock()).last.seqno;
         if (blockNum == newBlockNum) {
             continue;
         }
         blockNum = newBlockNum;
-        const curState = await provider.api().getAccount(blockNum, address);
+        const curState = await api.getAccount(blockNum, address);
         if(curState?.account?.last !== null){
             done = curState?.account?.last?.lt !== curTxLt;
         }
