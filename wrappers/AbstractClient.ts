@@ -1,4 +1,5 @@
 import { TonClient, TonClient4, HttpApi } from '@ton/ton';
+import { Address } from '@ton/core';
 
 type TC4Account = Awaited<ReturnType<TonClient4['getAccount']>>;
 type TCAccount  = Awaited<ReturnType<TonClient['getContractState']>>;
@@ -29,18 +30,18 @@ export class AbstractClient {
     }
     constructor (client: TonClient | TonClient4) {
         if(client instanceof TonClient4) {
-            this.tc4 = client;
+            this.#tc4 = client;
         }
         else {
-            this.tc  = client;
+            this.#tc  = client;
         }
     }
     async getLastBlock() : Promise<LastBlock> {
-        if(this.tc4 !== undefined) {
-            return await this.tc4.getLastBlock();
+        if(this.#tc4 !== undefined) {
+            return await this.#tc4.getLastBlock();
         }
         else {
-            const mcInfo = await this.tc!.getMasterchainInfo();
+            const mcInfo = await this.#tc!.getMasterchainInfo();
             return {
                 last:{
                     workchain: mcInfo.workchain,
@@ -59,11 +60,11 @@ export class AbstractClient {
         }
     }
     async getAccount(blockNum: number, address: Address): Promise<TC4Account> {
-        if(this.tc4 !== undefined) {
-            return await this.tc4.getAccount(blockNum, address);
+        if(this.#tc4 !== undefined) {
+            return await this.#tc4.getAccount(blockNum, address);
         }
-        const state = await this.tc!.getContractState(address);
-        const converted = this.convertTCState(state);
+        const state = await this.#tc!.getContractState(address);
+        const converted = this.#convertTCState(state);
         const balance   = {coins: state.balance.toString()}
         const block: TC4Account['block'] = {
             workchain: state.blockId.workchain,
