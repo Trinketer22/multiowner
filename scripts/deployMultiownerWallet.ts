@@ -4,6 +4,7 @@ import { Order } from '../wrappers/Order';
 import { compile, NetworkProvider, sleep } from '@ton/blueprint';
 import { Librarian } from '../wrappers/Librarian';
 import { TonClient, TonClient4 } from '@ton/ton';
+import { AbstractClient } from '../wrappers/AbstractClient';
 
 
 const waitForTransaction = async (provider:NetworkProvider, address:Address,
@@ -14,7 +15,7 @@ const waitForTransaction = async (provider:NetworkProvider, address:Address,
     let done  = false;
     let count = 0;
     const ui  = provider.ui();
-    const api = provider.api() as TonClient4;
+    const api = new AbstractClient(provider.api());
     let blockNum = (await api.getLastBlock()).last.seqno;
     if(curTxLt == null) {
         let initialState = await api.getAccount(blockNum, address);
